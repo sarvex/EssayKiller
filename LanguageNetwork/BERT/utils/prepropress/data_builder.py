@@ -54,11 +54,7 @@ def cal_rouge(evaluated_ngrams, reference_ngrams):
     else:
         precision = overlapping_count / evaluated_count
 
-    if reference_count == 0:
-        recall = 0.0
-    else:
-        recall = overlapping_count / reference_count
-
+    recall = 0.0 if reference_count == 0 else overlapping_count / reference_count
     f1_score = 2.0 * ((precision * recall) / (precision + recall + 1e-8))
     return {"f": f1_score, "p": precision, "r": recall}
 
@@ -204,10 +200,7 @@ class BertData:
         segs = [_segs[i] - _segs[i - 1] for i in range(1, len(_segs))]
         segments_ids = []
         for i, s in enumerate(segs):
-            if i % 2 == 0:
-                segments_ids += s * [0]
-            else:
-                segments_ids += s * [1]
+            segments_ids += s * [0] if i % 2 == 0 else s * [1]
         cls_ids = [i for i, t in enumerate(src_subtoken_idxs) if t == self.cls_vid]
         labels = labels[:len(cls_ids)]
 
@@ -217,20 +210,17 @@ class BertData:
 
 
 def format_to_bert(args):
-    if args.dataset != '':
-        datasets = [args.dataset]
-    else:
-        datasets = ['train', 'valid', 'test']
+    datasets = [args.dataset] if args.dataset != '' else ['train', 'valid', 'test']
     for corpus_type in datasets:
         a_lst = []
-        for json_f in glob.glob(pjoin(args.json_path, '*' + corpus_type + '.*.json')):
+        for json_f in glob.glob(pjoin(args.json_path, f'*{corpus_type}.*.json')):
             real_name = json_f.split('/')[-1].split('\\')[-1]
             if not args.oov_test:
                 a_lst.append((json_f, args, pjoin(args.bert_path, real_name.replace('json', 'bert.pt'))))
             else:
                 a_lst.append((json_f, args, pjoin(args.oov_bert_path, real_name.replace('json', 'bert.pt'))))
         pool = Pool(args.n_cpus)
-        for d in pool.imap(_format_to_bert, a_lst):
+        for _ in pool.imap(_format_to_bert, a_lst):
             pass
 
         pool.close()
@@ -241,13 +231,13 @@ def _format_to_bert(params):
     json_file, args, save_file = params
     # print(params[2])
     if os.path.exists(save_file):
-        logger.info('Ignore %s' % save_file)
+        logger.info(f'Ignore {save_file}')
         return
 
     bert = BertData(args)
 
-    logger.info('Processing %s' % json_file)
-    print('Processing %s' % json_file)
+    logger.info(f'Processing {json_file}')
+    print(f'Processing {json_file}')
     jobs = json.load(open(json_file, 'r', encoding='UTF-8'))
     # print(jobs)
     print('Load json file success')
@@ -270,7 +260,7 @@ def _format_to_bert(params):
         b_data_dict = {"src": indexed_tokens, "labels": labels, "segs": segments_ids, 'clss': cls_ids,
                        'src_txt': src_txt, "tgt_txt": tgt_txt}
         datasets.append(b_data_dict)
-    logger.info('Saving to %s' % save_file)
+    logger.info(f'Saving to {save_file}')
     torch.save(datasets, save_file)
     datasets = []
     gc.collect()
@@ -280,7 +270,7 @@ def tokenize(args):
     stories_dir = os.path.abspath(args.split_path)
     tokenized_stories_dir = os.path.abspath(args.tokenize_path)
 
-    print("Preparing to tokenize %s to %s..." % (stories_dir, tokenized_stories_dir))
+    print(f"Preparing to tokenize {stories_dir} to {tokenized_stories_dir}...")
     stories = os.listdir(stories_dir)
     # make IO list file
     print("Making list of files to tokenize...")
@@ -328,11 +318,8 @@ def format_to_lines(args):
         # elif real_name in corpus_mapping['train']:
         #     train_files.append(f)
         import random
-        if args.oov_test:
-            n = 3
-        else:
-            n = random.randint(1, 50)
-        if n == 1 or n == 2:
+        n = 3 if args.oov_test else random.randint(1, 50)
+        if n in {1, 2}:
             valid_files.append(f)
         elif n == 3:
             test_files.append(f)
@@ -379,7 +366,6 @@ def tokenize_format_lines(args):
     pun = oneOf(list("。，,；：（）()！？\\—、丨/"))
     json_data_set = []
     for i in tqdm(range(len(input_data))):
-        json_dict = {}
         raw = input_data[i].split(',', 4)
         if args.vy_predict:
             abstract = [list('NONE')]
@@ -389,12 +375,10 @@ def tokenize_format_lines(args):
             sentence = pun.split(raw[1])
         split_sentence = []
         for split_content in sentence:
-            split_content = list(split_content)
-            if split_content:
+            if split_content := list(split_content):
                 split_sentence.append(split_content)
 
-        json_dict['src'] = split_sentence
-        json_dict['tgt'] = abstract
+        json_dict = {'src': split_sentence, 'tgt': abstract}
         if args.vy_predict:
             json_dict['doc_id'] = raw[0]
         json_data_set.append(json_dict)
@@ -408,12 +392,11 @@ def format2bert(args, json_data_set):
     bert = BertData(args)
     for i in tqdm(range(len(json_data_set))):
         source, tgt = json_data_set[i]['src'], json_data_set[i]['tgt']
-        summary_size = int(len(source) / 2)
+        summary_size = len(source) // 2
 
-        if summary_size > 5:
-            summary_size = 5
+        summary_size = min(summary_size, 5)
         if (len(source) == 1 and len(source[0]) == 1) or not source:
-            source = 'CAN NOT PREDICT: "{}"'.format(source)
+            source = f'CAN NOT PREDICT: "{source}"'
 
         doc_id = 0
         if args.vy_predict:
@@ -447,10 +430,10 @@ def format2bert(args, json_data_set):
     k = 0
 
     while i < len(datasets):
-        path = args.bert_path + args.data_name + '.{}.{}.bert.pt'.format(data_type, k)
+        path = args.bert_path + args.data_name + f'.{data_type}.{k}.bert.pt'
         torch.save(datasets[i:j], path)
         k += 1
         i = j
         j = j + 10000
 
-        logger.info('Saving to %s' % path)
+        logger.info(f'Saving to {path}')

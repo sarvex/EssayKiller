@@ -80,8 +80,6 @@ class LayerNormLSTM(nn.Module):
                     h1, c1 = ht[t][l1], ct[t][l1]
                 xs = [torch.cat((h[l0], h[l1]), dim=1) for h in ht]
             y = torch.stack(xs)
-            hy = torch.stack(ht[-1])
-            cy = torch.stack(ct[-1])
         else:
             h, c = hx, cx
             for t, x in enumerate(input):
@@ -90,7 +88,6 @@ class LayerNormLSTM(nn.Module):
                     x = ht[t][l]
                 h, c = ht[t], ct[t]
             y = torch.stack([h[-1] for h in ht])
-            hy = torch.stack(ht[-1])
-            cy = torch.stack(ct[-1])
-
+        hy = torch.stack(ht[-1])
+        cy = torch.stack(ct[-1])
         return y, (hy, cy)

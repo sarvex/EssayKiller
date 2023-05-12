@@ -6,7 +6,7 @@ from math import *
 import numpy as np
 from PIL import Image
 
-sys.path.append(os.getcwd() + '/ctpn')
+sys.path.append(f'{os.getcwd()}/ctpn')
 from ctpn.text_detect import text_detect
 from lib.fast_rcnn.config import cfg_from_file
 from densenet.model import predict as keras_densenet
@@ -33,46 +33,42 @@ def dumpRotateImage(img, degree, pt1, pt2, pt3, pt4):
     [[pt1[0]], [pt1[1]]] = np.dot(matRotation, np.array([[pt1[0]], [pt1[1]], [1]]))
     [[pt3[0]], [pt3[1]]] = np.dot(matRotation, np.array([[pt3[0]], [pt3[1]], [1]]))
     ydim, xdim = imgRotation.shape[:2]
-    imgOut = imgRotation[max(1, int(pt1[1])) : min(ydim - 1, int(pt3[1])), max(1, int(pt1[0])) : min(xdim - 1, int(pt3[0]))]
-
-    return imgOut
+    return imgRotation[
+        max(1, int(pt1[1])) : min(ydim - 1, int(pt3[1])),
+        max(1, int(pt1[0])) : min(xdim - 1, int(pt3[0])),
+    ]
 
 def charRec(img, text_recs, adjust=False):
-   """
+    """
    加载OCR模型，进行字符识别
    """
-   results = {}
-   xDim, yDim = img.shape[1], img.shape[0]
-    
-   for index, rec in enumerate(text_recs):
-       xlength = int((rec[6] - rec[0]) * 0.1)
-       ylength = int((rec[7] - rec[1]) * 0.2)
-       if adjust:
-           pt1 = (max(1, rec[0] - xlength), max(1, rec[1] - ylength))
-           pt2 = (rec[2], rec[3])
-           pt3 = (min(rec[6] + xlength, xDim - 2), min(yDim - 2, rec[7] + ylength))
-           pt4 = (rec[4], rec[5])
-       else:
-           pt1 = (max(1, rec[0]), max(1, rec[1]))
-           pt2 = (rec[2], rec[3])
-           pt3 = (min(rec[6], xDim - 2), min(yDim - 2, rec[7]))
-           pt4 = (rec[4], rec[5])
-        
-       degree = degrees(atan2(pt2[1] - pt1[1], pt2[0] - pt1[0]))  # 图像倾斜角度
+    results = {}
+    xDim, yDim = img.shape[1], img.shape[0]
 
-       partImg = dumpRotateImage(img, degree, pt1, pt2, pt3, pt4)
+    for index, rec in enumerate(text_recs):
+        if adjust:
+            xlength = int((rec[6] - rec[0]) * 0.1)
+            ylength = int((rec[7] - rec[1]) * 0.2)
+            pt1 = (max(1, rec[0] - xlength), max(1, rec[1] - ylength))
+            pt3 = (min(rec[6] + xlength, xDim - 2), min(yDim - 2, rec[7] + ylength))
+        else:
+            pt1 = (max(1, rec[0]), max(1, rec[1]))
+            pt3 = (min(rec[6], xDim - 2), min(yDim - 2, rec[7]))
+        pt4 = (rec[4], rec[5])
+        pt2 = (rec[2], rec[3])
+        degree = degrees(atan2(pt2[1] - pt1[1], pt2[0] - pt1[0]))  # 图像倾斜角度
 
-       if partImg.shape[0] < 1 or partImg.shape[1] < 1 or partImg.shape[0] > partImg.shape[1]:  # 过滤异常图片
-           continue
+        partImg = dumpRotateImage(img, degree, pt1, pt2, pt3, pt4)
 
-       image = Image.fromarray(partImg).convert('L')
-       text = keras_densenet(image)
-       
-       if len(text) > 0:
-           results[index] = [rec]
-           results[index].append(text)  # 识别文字
- 
-   return results
+        if partImg.shape[0] < 1 or partImg.shape[1] < 1 or partImg.shape[0] > partImg.shape[1]:  # 过滤异常图片
+            continue
+
+        image = Image.fromarray(partImg).convert('L')
+        text = keras_densenet(image)
+
+        if len(text) > 0:
+            results[index] = [rec, text]
+    return results
 
 def model(img, adjust=False):
     """

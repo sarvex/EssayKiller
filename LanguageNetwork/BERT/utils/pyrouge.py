@@ -40,7 +40,7 @@ class DirectoryProcessor:
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         logger = log.get_global_console_logger()
-        logger.info("Processing files in {}.".format(input_dir))
+        logger.info(f"Processing files in {input_dir}.")
         input_file_names = os.listdir(input_dir)
         for input_file_name in input_file_names:
             input_file = os.path.join(input_dir, input_file_name)
@@ -50,7 +50,7 @@ class DirectoryProcessor:
             output_file = os.path.join(output_dir, input_file_name)
             with codecs.open(output_file, "w", encoding="UTF-8") as f:
                 f.write(clean(output_string.lower()))
-        logger.info("Saved processed files to {}.".format(output_dir))
+        logger.info(f"Saved processed files to {output_dir}.")
 
 
 class Rouge155(object):
@@ -132,7 +132,7 @@ class Rouge155(object):
         config.set(section, 'home_dir', self._home_dir)
         with open(self._settings_file, 'w') as f:
             config.write(f)
-        self.log.info("Set ROUGE home directory to {}.".format(self._home_dir))
+        self.log.info(f"Set ROUGE home directory to {self._home_dir}.")
 
     @property
     def settings_file(self):
@@ -256,16 +256,16 @@ class Rouge155(object):
             "<a name=\"{i}\">[{i}]</a> <a href=\"#{i}\" id={i}>"
             "{text}</a>".format(i=i, text=sent)
             for i, sent in enumerate(sentences, start=1)]
-        html = """<html>
+        return """<html>
 <head>
 <title>{title}</title>
 </head>
 <body bgcolor="white">
 {elems}
 </body>
-</html>""".format(title=title, elems="\n".join(sent_elems))
-
-        return html
+</html>""".format(
+            title=title, elems="\n".join(sent_elems)
+        )
 
     @staticmethod
     def write_config_static(system_dir, system_filename_pattern,
@@ -294,13 +294,12 @@ class Rouge155(object):
                                         will appear in the ROUGE output.
 
         """
-        system_filenames = [f for f in os.listdir(system_dir)]
+        system_filenames = list(os.listdir(system_dir))
         system_models_tuples = []
 
         system_filename_pattern = re.compile(system_filename_pattern)
         for system_filename in sorted(system_filenames):
-            match = system_filename_pattern.match(system_filename)
-            if match:
+            if match := system_filename_pattern.match(system_filename):
                 id = match.groups(0)[0]
                 model_filenames = [model_filename_pattern.replace('#ID#',id)]
                 # model_filenames = Rouge155.__get_model_filenames_for_id(
@@ -309,9 +308,8 @@ class Rouge155(object):
                     (system_filename, sorted(model_filenames)))
         if not system_models_tuples:
             raise Exception(
-                "Did not find any files matching the pattern {} "
-                "in the system summaries directory {}.".format(
-                    system_filename_pattern.pattern, system_dir))
+                f"Did not find any files matching the pattern {system_filename_pattern.pattern} in the system summaries directory {system_dir}."
+            )
 
         with codecs.open(config_file_path, 'w', encoding='utf-8') as f:
             f.write('<ROUGE-EVAL version="1.55">')
@@ -350,8 +348,7 @@ class Rouge155(object):
             self._system_dir, self._system_filename_pattern,
             self._model_dir, self._model_filename_pattern,
             self._config_file, system_id)
-        self.log.info(
-            "Written ROUGE configuration to {}".format(self._config_file))
+        self.log.info(f"Written ROUGE configuration to {self._config_file}")
 
     def evaluate(self, system_id=1, rouge_args=None):
         """
@@ -368,10 +365,8 @@ class Rouge155(object):
         self.write_config(system_id=system_id)
         options = self.__get_options(rouge_args)
         command = [self._bin_path] + options
-        self.log.info(
-            "Running ROUGE with command {}".format(" ".join(command)))
-        rouge_output = check_output(command).decode("UTF-8")
-        return rouge_output
+        self.log.info(f'Running ROUGE with command {" ".join(command)}')
+        return check_output(command).decode("UTF-8")
 
     def convert_and_evaluate(self, system_id=1,
                              split_sentences=False, rouge_args=None):
@@ -395,8 +390,7 @@ class Rouge155(object):
         if split_sentences:
             self.split_sentences()
         self.__write_summaries()
-        rouge_output = self.evaluate(system_id, rouge_args)
-        return rouge_output
+        return self.evaluate(system_id, rouge_args)
 
     def output_to_dict(self, output):
         """
@@ -410,20 +404,19 @@ class Rouge155(object):
             r"\(95%-conf.int. (\d.\d+) - (\d.\d+)\)")
         results = {}
         for line in output.split("\n"):
-            match = pattern.match(line)
-            if match:
+            if match := pattern.match(line):
                 sys_id, rouge_type, measure, result, conf_begin, conf_end = \
-                    match.groups()
+                        match.groups()
                 measure = {
                     'Average_R': 'recall',
                     'Average_P': 'precision',
                     'Average_F': 'f_score'
                     }[measure]
                 rouge_type = rouge_type.lower().replace("-", '_')
-                key = "{}_{}".format(rouge_type, measure)
+                key = f"{rouge_type}_{measure}"
                 results[key] = float(result)
-                results["{}_cb".format(key)] = float(conf_begin)
-                results["{}_ce".format(key)] = float(conf_end)
+                results[f"{key}_cb"] = float(conf_begin)
+                results[f"{key}_ce"] = float(conf_end)
         return results
 
     ###################################################################
@@ -444,9 +437,8 @@ class Rouge155(object):
         self.data_dir = os.path.join(self._home_dir, 'data')
         if not os.path.exists(self._bin_path):
             raise Exception(
-                "ROUGE binary not found at {}. Please set the "
-                "correct path by running pyrouge_set_rouge_path "
-                "/path/to/rouge/home.".format(self._bin_path))
+                f"ROUGE binary not found at {self._bin_path}. Please set the correct path by running pyrouge_set_rouge_path /path/to/rouge/home."
+            )
 
     def __get_rouge_home_dir_from_settings(self):
         config = ConfigParser()
@@ -456,8 +448,7 @@ class Rouge155(object):
             else:
                 # use deprecated python 2.x method
                 config.readfp(f)
-        rouge_home_dir = config.get('pyrouge settings', 'home_dir')
-        return rouge_home_dir
+        return config.get('pyrouge settings', 'home_dir')
 
     @staticmethod
     def __get_eval_string(
@@ -482,7 +473,7 @@ class Rouge155(object):
             for i, name in enumerate(model_filenames)]
 
         model_elems = "\n\t\t\t".join(model_elems)
-        eval_string = """
+        return """
     <EVAL ID="{task_id}">
         <MODEL-ROOT>{model_root}</MODEL-ROOT>
         <PEER-ROOT>{peer_root}</PEER-ROOT>
@@ -497,9 +488,11 @@ class Rouge155(object):
     </EVAL>
 """.format(
             task_id=task_id,
-            model_root=model_dir, model_elems=model_elems,
-            peer_root=system_dir, peer_elems=peer_elems)
-        return eval_string
+            model_root=model_dir,
+            model_elems=model_elems,
+            peer_root=system_dir,
+            peer_elems=peer_elems,
+        )
 
     def __process_summaries(self, process_func):
         """
@@ -514,8 +507,8 @@ class Rouge155(object):
         new_model_dir = os.path.join(temp_dir, "model")
         os.mkdir(new_model_dir)
         self.log.info(
-            "Processing summaries. Saving system files to {} and "
-            "model files to {}.".format(new_system_dir, new_model_dir))
+            f"Processing summaries. Saving system files to {new_system_dir} and model files to {new_model_dir}."
+        )
         process_func(self._system_dir, new_system_dir)
         process_func(self._model_dir, new_model_dir)
         self._system_dir = new_system_dir
@@ -528,14 +521,14 @@ class Rouge155(object):
     @staticmethod
     def __get_model_filenames_for_id(id, model_dir, model_filenames_pattern):
         pattern = re.compile(model_filenames_pattern.replace('#ID#', id))
-        model_filenames = [
-            f for f in os.listdir(model_dir) if pattern.match(f)]
-        if not model_filenames:
+        if model_filenames := [
+            f for f in os.listdir(model_dir) if pattern.match(f)
+        ]:
+            return model_filenames
+        else:
             raise Exception(
-                "Could not find any model summaries for the system"
-                " summary with ID {}. Specified model filename pattern was: "
-                "{}".format(id, model_filenames_pattern))
-        return model_filenames
+                f"Could not find any model summaries for the system summary with ID {id}. Specified model filename pattern was: {model_filenames_pattern}"
+            )
 
     def __get_options(self, rouge_args=None):
         """
@@ -575,7 +568,7 @@ class Rouge155(object):
 
         """
         property_name = "{}_dir".format(dir_name)
-        private_name = "_" + property_name
+        private_name = f"_{property_name}"
         setattr(self, private_name, None)
 
         def fget(self):
@@ -610,10 +603,8 @@ class Rouge155(object):
         if not rouge_args:
             return
         quot_mark_pattern = re.compile('"(.+)"')
-        match = quot_mark_pattern.match(rouge_args)
-        if match:
-            cleaned_args = match.group(1)
-            return cleaned_args
+        if match := quot_mark_pattern.match(rouge_args):
+            return match[1]
         else:
             return rouge_args
 

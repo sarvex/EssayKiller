@@ -16,23 +16,25 @@ for file in files:
     if basename.lower().split('.')[-1] not in ['jpg', 'png']:
         continue
     stem, ext = os.path.splitext(basename)
-    gt_file = os.path.join(gt_path, 'gt_' + stem + '.txt')
+    gt_file = os.path.join(gt_path, f'gt_{stem}.txt')
     img_path = os.path.join(path, file)
     print(img_path)
     img = cv.imread(img_path)
     img_size = img.shape
-    im_size_min = np.min(img_size[0:2])
-    im_size_max = np.max(img_size[0:2])
+    im_size_min = np.min(img_size[:2])
+    im_size_max = np.max(img_size[:2])
 
     im_scale = float(600) / float(im_size_min)
     if np.round(im_scale * im_size_max) > 1200:
         im_scale = float(1200) / float(im_size_max)
     re_im = cv.resize(img, None, None, fx=im_scale, fy=im_scale, interpolation=cv.INTER_LINEAR)
     re_size = re_im.shape
-    cv.imwrite(os.path.join(out_path, stem) + '.jpg', re_im)
+    cv.imwrite(f'{os.path.join(out_path, stem)}.jpg', re_im)
 
     with open(gt_file, 'r') as f:
         lines = f.readlines()
+    # reimplement
+    step = 16.0
     for line in lines:
         splitted_line = line.strip().lower().split(',')
         pt_x = np.zeros((4, 1))
@@ -69,23 +71,14 @@ for file in files:
         xmax = int(max(pt2[0], pt4[0]))
         ymax = int(max(pt3[1], pt4[1]))
 
-        if xmin < 0:
-            xmin = 0
-        if xmax > re_size[1] - 1:
-            xmax = re_size[1] - 1
-        if ymin < 0:
-            ymin = 0
-        if ymax > re_size[0] - 1:
-            ymax = re_size[0] - 1
-
+        xmin = max(xmin, 0)
+        xmax = min(xmax, re_size[1] - 1)
+        ymin = max(ymin, 0)
+        ymax = min(ymax, re_size[0] - 1)
         width = xmax - xmin
         height = ymax - ymin
 
-        # reimplement
-        step = 16.0
-        x_left = []
-        x_right = []
-        x_left.append(xmin)
+        x_left = [xmin]
         x_left_start = int(math.ceil(xmin / 16.0) * 16.0)
         if x_left_start == xmin:
             x_left_start = xmin + 16
@@ -93,7 +86,7 @@ for file in files:
             x_left.append(i)
         x_left = np.array(x_left)
 
-        x_right.append(x_left_start - 1)
+        x_right = [x_left_start - 1]
         for i in range(1, len(x_left) - 1):
             x_right.append(x_left[i] + 15)
         x_right.append(xmax)

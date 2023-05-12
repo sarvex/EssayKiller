@@ -30,9 +30,9 @@ req = drive_service.files().get_media(fileId=args.file_id)
 with open(args.file_path, 'wb') as f:
     downloader = MediaIoBaseDownload(f, req, chunksize=100*1024*1024)
     done = False
-    pbar = tqdm(total=100, desc='%s' % args.file_path)
+    pbar = tqdm(total=100, desc=f'{args.file_path}')
     progress = 0
-    while done is False:
+    while not done:
         status, done = downloader.next_chunk()
         new_progress = int(status.progress() * 100)
         pbar.update(new_progress - progress)

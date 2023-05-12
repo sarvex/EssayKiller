@@ -55,8 +55,7 @@ class Batch(object):
     def _pad(data, pad_id, width=-1):
         if width == -1:
             width = max(len(d) for d in data)
-        rtn_data = [d + [pad_id] * (width - len(d)) for d in data]
-        return rtn_data
+        return [d + [pad_id] * (width - len(d)) for d in data]
 
 
 def batch(data, batch_size):
@@ -97,9 +96,15 @@ def load_dataset(args, corpus_type, shuffle):
         A list of dataset, the dataset(s) are lazily loaded.
     """
     assert corpus_type in ["train", "valid", "test"]
-    # Sort the glob output by file name (by increasing indexes).
-    pts = sorted(glob.glob(args.bert_data_path + args.data_name + '.' + corpus_type + '.[0-9]*.pt'))
-    if pts:
+    if pts := sorted(
+        glob.glob(
+            args.bert_data_path
+            + args.data_name
+            + '.'
+            + corpus_type
+            + '.[0-9]*.pt'
+        )
+    ):
         if shuffle:
             random.shuffle(pts)
 
@@ -120,8 +125,7 @@ def simple_batch_size_fn(new, count):
         max_n_tokens = 0
     max_n_sents = max(max_n_sents, len(src))
     max_size = max(max_size, max_n_sents)
-    src_elements = count * max_size
-    return src_elements
+    return count * max_size
 
 
 class DataLoader(object):
@@ -137,10 +141,9 @@ class DataLoader(object):
         assert self.cur_iter is not None
 
     def __iter__(self):
-        dataset_iter = (d for d in self.datasets)
+        dataset_iter = iter(self.datasets)
         while self.cur_iter is not None:
-            for _batch in self.cur_iter:
-                yield _batch
+            yield from self.cur_iter
             self.cur_iter = self._next_dataset_iterator(dataset_iter)
 
     def _next_dataset_iterator(self, dataset_iter):
@@ -181,16 +184,11 @@ class DataIterator(object):
     def data(self):
         if self.shuffle:
             random.shuffle(self.dataset)
-        xs = self.dataset
-        return xs
+        return self.dataset
 
     def pre_process(self, ex, is_test):
         src = ex['src']
-        if 'labels' in ex:
-            labels = ex['labels']
-        else:
-            labels = ex['src_sent_labels']
-
+        labels = ex['labels'] if 'labels' in ex else ex['src_sent_labels']
         segs = ex['segs']
         if not self.args.use_interval:
             segs = [0] * len(segs)
@@ -240,8 +238,7 @@ class DataIterator(object):
 
             if self.shuffle:
                 random.shuffle(p_batch)
-            for b in p_batch:
-                yield b
+            yield from p_batch
 
     def __iter__(self):
         while True:
@@ -252,8 +249,10 @@ class DataIterator(object):
                     continue
                 self.iterations += 1
                 self._iterations_this_epoch += 1
-                # print(len(mini_batch))
-                _batch = Batch(mini_batch, self.device, self.is_test, vy_predict=self.args.vy_predict)
-
-                yield _batch
+                yield Batch(
+                    mini_batch,
+                    self.device,
+                    self.is_test,
+                    vy_predict=self.args.vy_predict,
+                )
             return

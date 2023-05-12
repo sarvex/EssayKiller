@@ -20,32 +20,29 @@ def process(params):
     candidates, references, pool_id = data
     cnt = len(candidates)
     current_time = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())
-    tmp_dir = os.path.join(temp_dir, "rouge-tmp-{}-{}".format(current_time, pool_id))
+    tmp_dir = os.path.join(temp_dir, f"rouge-tmp-{current_time}-{pool_id}")
     if not os.path.isdir(tmp_dir):
         os.mkdir(tmp_dir)
-        os.mkdir(tmp_dir + "/candidate")
-        os.mkdir(tmp_dir + "/reference")
+        os.mkdir(f"{tmp_dir}/candidate")
+        os.mkdir(f"{tmp_dir}/reference")
     try:
 
         for i in range(cnt):
             if len(references[i]) < 1:
                 continue
-            with open(tmp_dir + "/candidate/cand.{}.txt".format(i), "w",
-                      encoding="utf-8") as f:
+            with open(f"{tmp_dir}/candidate/cand.{i}.txt", "w", encoding="utf-8") as f:
                 f.write(candidates[i])
-            with open(tmp_dir + "/reference/ref.{}.txt".format(i), "w",
-                      encoding="utf-8") as f:
+            with open(f"{tmp_dir}/reference/ref.{i}.txt", "w", encoding="utf-8") as f:
                 f.write(references[i])
         r = pyrouge.Rouge155(temp_dir=temp_dir)
-        r.model_dir = tmp_dir + "/reference/"
-        r.system_dir = tmp_dir + "/candidate/"
+        r.model_dir = f"{tmp_dir}/reference/"
+        r.system_dir = f"{tmp_dir}/candidate/"
         r.model_filename_pattern = 'ref.#ID#.txt'
         r.system_filename_pattern = r'cand.(\d+).txt'
         rouge_results = r.convert_and_evaluate()
         print(rouge_results)
         results_dict = r.output_to_dict(rouge_results)
     finally:
-        pass
         if os.path.isdir(tmp_dir):
             shutil.rmtree(tmp_dir)
     return results_dict
@@ -60,32 +57,29 @@ def test_rouge(temp_dir, cand, ref):
 
     cnt = len(candidates)
     current_time = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())
-    tmp_dir = os.path.join(temp_dir, "rouge-tmp-{}".format(current_time))
+    tmp_dir = os.path.join(temp_dir, f"rouge-tmp-{current_time}")
     if not os.path.isdir(tmp_dir):
         os.mkdir(tmp_dir)
-        os.mkdir(tmp_dir + "/candidate")
-        os.mkdir(tmp_dir + "/reference")
+        os.mkdir(f"{tmp_dir}/candidate")
+        os.mkdir(f"{tmp_dir}/reference")
     try:
 
         for i in range(cnt):
             if len(references[i]) < 1:
                 continue
-            with open(tmp_dir + "/candidate/cand.{}.txt".format(i), "w",
-                      encoding="utf-8") as f:
+            with open(f"{tmp_dir}/candidate/cand.{i}.txt", "w", encoding="utf-8") as f:
                 f.write(candidates[i])
-            with open(tmp_dir + "/reference/ref.{}.txt".format(i), "w",
-                      encoding="utf-8") as f:
+            with open(f"{tmp_dir}/reference/ref.{i}.txt", "w", encoding="utf-8") as f:
                 f.write(references[i])
         r = pyrouge.Rouge155(temp_dir=temp_dir)
-        r.model_dir = tmp_dir + "/reference/"
-        r.system_dir = tmp_dir + "/candidate/"
+        r.model_dir = f"{tmp_dir}/reference/"
+        r.system_dir = f"{tmp_dir}/candidate/"
         r.model_filename_pattern = 'ref.#ID#.txt'
         r.system_filename_pattern = r'cand.(\d+).txt'
         rouge_results = r.convert_and_evaluate()
         print(rouge_results)
         results_dict = r.output_to_dict(rouge_results)
     finally:
-        pass
         if os.path.isdir(tmp_dir):
             shutil.rmtree(tmp_dir)
     return results_dict

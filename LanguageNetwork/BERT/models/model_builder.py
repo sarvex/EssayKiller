@@ -50,8 +50,7 @@ class Bert(nn.Module):
 
     def forward(self, x, segs, mask):
         encoded_layers, _ = self.model(x, segs, attention_mask=mask)
-        top_vec = encoded_layers[-1]
-        return top_vec
+        return encoded_layers[-1]
 
 
 class Summarizer(nn.Module):

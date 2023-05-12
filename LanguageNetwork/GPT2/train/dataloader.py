@@ -108,7 +108,7 @@ def classification_convert_examples_to_features(
         writer.write(tf_example.SerializeToString())
 
     if pad_extra_examples:
-        for x in range(len(examples) % batch_size):
+        for _ in range(len(examples) % batch_size):
             features = collections.OrderedDict()
             features['input_ids'] = tf.train.Feature(int64_list=tf.train.Int64List(value=[0]*max_seq_length))
             features['label_ids'] = tf.train.Feature(int64_list=tf.train.Int64List(value=[0]))

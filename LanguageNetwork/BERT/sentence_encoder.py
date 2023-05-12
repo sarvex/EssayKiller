@@ -15,13 +15,12 @@ time.sleep(1)
 
 
 def gen_sentence_vector_use_third_party_func(sentence):
-    sentence_emb = sentence_transformer_model.encode(sentence)
-    return sentence_emb
+    return sentence_transformer_model.encode(sentence)
 
 
 def load_predict_gen_vector(path, arg):
-    content_path = path + '.origin'
-    abs_path = path + '.candidate'
+    content_path = f'{path}.origin'
+    abs_path = f'{path}.candidate'
     print('Loading origin text')
     content_data = load_txt_data(content_path, origin=True)[:-1]
     print('Loading abstract text')
@@ -58,8 +57,7 @@ def load_predict_gen_vector(path, arg):
 def _pad(data, pad_id, width=-1):
     if width == -1:
         width = max(len(d) for d in data)
-    rtn_data = [d + [pad_id] * (width - len(d)) for d in data]
-    return rtn_data
+    return [d + [pad_id] * (width - len(d)) for d in data]
 
 
 def gen_bert_vector(data, pad_size=200, ):
@@ -72,9 +70,7 @@ def gen_bert_vector(data, pad_size=200, ):
     src = torch.tensor(_pad([sent_data['src']], 0, pad_size)).to(device)
     segs = torch.tensor(_pad([sent_data['segs']], 0, pad_size)).to(device)
     mask = torch.logical_not(src == 0).to(device)
-    sentence_vector = model(src, segs, mask)
-
-    return sentence_vector
+    return model(src, segs, mask)
 
 
 def add_vector_in_origin_file(path, vector_dict, save_path):
@@ -91,9 +87,9 @@ def add_vector_in_origin_file(path, vector_dict, save_path):
             fl = format(fl, '.8f')
             new_vector.append(fl)
         new_vector = ", ".join(new_vector)
-        new_raw = "{},\"{}\",\"{}\"".format(raw[i], sent_abs, new_vector)
+        new_raw = f'{raw[i]},\"{sent_abs}\",\"{new_vector}\"'
         res.append(new_raw)
-    print("save new corpus to: {}".format(save_path))
+    print(f"save new corpus to: {save_path}")
     save_txt_file(res, save_path)
 
 

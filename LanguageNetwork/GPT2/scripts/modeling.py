@@ -94,8 +94,7 @@ class GroverConfig(object):
 
     def to_dict(self):
         """Serializes this instance to a Python dictionary."""
-        output = copy.deepcopy(self.__dict__)
-        return output
+        return copy.deepcopy(self.__dict__)
 
     def to_json_string(self):
         """Serializes this instance to a JSON string."""
@@ -130,9 +129,9 @@ def _attention_projection_and_transpose(x_flat, batch_size, seq_length, num_atte
     batch_size_seq_length, dim = get_shape_list(x_flat, expected_rank=2)
 
     if dim != size_per_head * num_attention_heads:
-        raise ValueError("passed in a tensor of shape {} when size_per_head={} and num_attention_heads={}".format(
-            (batch_size_seq_length, dim), size_per_head, num_attention_heads
-        ))
+        raise ValueError(
+            f"passed in a tensor of shape {(batch_size_seq_length, dim)} when size_per_head={size_per_head} and num_attention_heads={num_attention_heads}"
+        )
 
     projected = tf.layers.dense(
         x_flat,
@@ -142,8 +141,7 @@ def _attention_projection_and_transpose(x_flat, batch_size, seq_length, num_atte
 
     projected = tf.reshape(
         projected, [batch_size, seq_length, num_attention_heads, size_per_head])
-    output_tensor = tf.transpose(projected, [0, 2, 1, 3])
-    return output_tensor
+    return tf.transpose(projected, [0, 2, 1, 3])
 
 
 def attention_layer(x_flat, attention_mask, batch_size, seq_length, size_per_head=512, num_attention_heads=1, *,
@@ -165,9 +163,9 @@ def attention_layer(x_flat, attention_mask, batch_size, seq_length, size_per_hea
     batch_size_seq_length, dim = get_shape_list(x_flat, expected_rank=2)
 
     if dim != size_per_head * num_attention_heads:
-        raise ValueError("passed in a tensor of shape {} when size_per_head={} and num_attention_heads={}".format(
-            (batch_size_seq_length, dim), size_per_head, num_attention_heads
-        ))
+        raise ValueError(
+            f"passed in a tensor of shape {(batch_size_seq_length, dim)} when size_per_head={size_per_head} and num_attention_heads={num_attention_heads}"
+        )
 
     query = _attention_projection_and_transpose(x_flat, batch_size=batch_size, seq_length=seq_length,
                                                 num_attention_heads=num_attention_heads, size_per_head=size_per_head,
@@ -251,8 +249,7 @@ def residual_mlp_layer(x_flat, intermediate_size, initializer_range=0.02, hidden
         kernel_initializer=create_initializer(initializer_range))
     output_for_residual = dropout(output_for_residual, hidden_dropout_prob)
 
-    layer_output = layer_norm(x_flat + output_for_residual, name='mlp_ln1')
-    return layer_output
+    return layer_norm(x_flat + output_for_residual, name='mlp_ln1')
 
 
 def embed(input_ids,
@@ -546,8 +543,7 @@ class GroverModel(object):
 
         numerator = tf.reduce_sum(label_weights * per_example_loss)
         denominator = tf.reduce_sum(label_weights) + 1e-5
-        loss = numerator / denominator
-        return loss
+        return numerator / denominator
 
     def pooled_output(self, clf_token):
         """
@@ -563,12 +559,12 @@ def model_fn_builder(config: GroverConfig, init_checkpoint, learning_rate,
                      num_train_steps, num_warmup_steps, use_tpu):
     """Returns `model_fn` closure for TPUEstimator."""
 
-    def model_fn(features, labels, mode, params):  # pylint: disable=unused-argument
+    def model_fn(features, labels, mode, params):    # pylint: disable=unused-argument
         """The `model_fn` for TPUEstimator."""
 
         tf.logging.info("*** Features ***")
         for name in sorted(features.keys()):
-            tf.logging.info("  name = %s, shape = %s" % (name, features[name].shape))
+            tf.logging.info(f"  name = {name}, shape = {features[name].shape}")
 
         input_ids = features["input_ids"]
 

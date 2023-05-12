@@ -32,7 +32,7 @@ class Running(object):
 
         self.device = "cpu" if self.args.visible_gpus == '-1' else "cuda"
         logger.info('Device ID %d' % self.device_id)
-        logger.info('Device %s' % self.device)
+        logger.info(f'Device {self.device}')
         torch.manual_seed(self.args.seed)
         random.seed(self.args.seed)
 
@@ -46,10 +46,10 @@ class Running(object):
         except IndexError:
             self.step = 0
 
-        logger.info('Loading checkpoint from %s' % self.args.test_from)
+        logger.info(f'Loading checkpoint from {self.args.test_from}')
         checkpoint = torch.load(self.args.test_from, map_location=lambda storage, loc: storage)
         opt = vars(checkpoint['opt'])
-        for k in opt.keys():
+        for k in opt:
             if k in self.model_flags:
                 setattr(self.args, k, opt[k])
 
