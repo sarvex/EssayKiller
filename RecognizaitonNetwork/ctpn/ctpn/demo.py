@@ -22,14 +22,11 @@ def resize_im(im, scale, max_scale=None):
 
 def draw_boxes(img,image_name,boxes,scale):
     base_name = image_name.split('/')[-1]
-    with open('data/results/' + 'res_{}.txt'.format(base_name.split('.')[0]), 'w') as f:
+    with open(f"data/results/res_{base_name.split('.')[0]}.txt", 'w') as f:
         for box in boxes:
             if np.linalg.norm(box[0] - box[1]) < 5 or np.linalg.norm(box[3] - box[0]) < 5:
                 continue
-            if box[8] >= 0.9:
-                color = (0, 0, 255)  # red
-            else:
-                color = (0, 255, 0)  # green
+            color = (0, 0, 255) if box[8] >= 0.9 else (0, 255, 0)
             cv2.line(img, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), color, 2)
             cv2.line(img, (int(box[0]), int(box[1])), (int(box[4]), int(box[5])), color, 2)
             cv2.line(img, (int(box[6]), int(box[7])), (int(box[2]), int(box[3])), color, 2)
@@ -77,17 +74,17 @@ if __name__ == '__main__':
     # load model
     print(('Loading network {:s}... '.format("VGGnet_test")), end=' ')
     saver = tf.train.Saver()
-    
+
     try:
         ckpt = tf.train.get_checkpoint_state(cfg.TEST.checkpoints_path)
-        print('Restoring from {}...'.format(ckpt.model_checkpoint_path), end=' ')
+        print(f'Restoring from {ckpt.model_checkpoint_path}...', end=' ')
         saver.restore(sess, ckpt.model_checkpoint_path)
         print('done')
     except:
         raise 'Check your pretrained {:s}'.format(ckpt.model_checkpoint_path)
 
     im = 128 * np.ones((300, 300, 3), dtype=np.uint8)
-    for i in range(2):
+    for _ in range(2):
         _, _ = test_ctpn(sess, net, im)
 
     im_names = glob.glob(os.path.join(cfg.DATA_DIR, 'demo', '*.png')) + \

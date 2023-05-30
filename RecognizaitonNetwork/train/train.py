@@ -45,8 +45,7 @@ def readfile(filename):
     res = []
     with open(filename, 'r') as f:
         lines = f.readlines()
-        for i in lines:
-            res.append(i.strip())
+        res.extend(i.strip() for i in lines)
     dic = {}
     for i in res:
         p = i.split(' ')
@@ -59,16 +58,16 @@ class random_uniform_num():
     """
     def __init__(self, total):
         self.total = total
-        self.range = [i for i in range(total)]
+        self.range = list(range(total))
         np.random.shuffle(self.range)
         self.index = 0
     def get(self, batchsize):
         r_n=[]
-        if(self.index + batchsize > self.total):
+        if (self.index + batchsize > self.total):
             r_n_1 = self.range[self.index:self.total]
             np.random.shuffle(self.range)
             self.index = (self.index + batchsize) - self.total
-            r_n_2 = self.range[0:self.index]
+            r_n_2 = self.range[:self.index]
             r_n.extend(r_n_1)
             r_n.extend(r_n_2)
         else:

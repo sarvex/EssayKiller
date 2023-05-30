@@ -118,7 +118,7 @@ def save_plots(config, imgs, ppts_2d, ppts_3d, tpts_2d, tpts_3d, filename, nrows
                     axes[i, j].plot(ppts_2d[cnt, p, 0] * 4, ppts_2d[cnt, p, 1] * 4, c='b', linewidth=0.5)
                     axes[i, j].plot(tpts_2d[cnt, p, 0] * 4, tpts_2d[cnt, p, 1] * 4, c='r', linewidth=0.5)
             cnt += 1
-    plt.savefig(filename + '_2d.png')
+    plt.savefig(f'{filename}_2d.png')
     plt.close()
 
     # plot 3d
@@ -133,5 +133,5 @@ def save_plots(config, imgs, ppts_2d, ppts_3d, tpts_2d, tpts_3d, filename, nrows
             for p in pairs:
                 ax.plot(ppts_3d[i, p, 2], ppts_3d[i, p, 0], ppts_3d[i, p, 1], c='b', linewidth=1)
                 ax.plot(tpts_3d[i, p, 2], tpts_3d[i, p, 0], tpts_3d[i, p, 1], c='r', linewidth=1)
-    plt.savefig(filename + '_3d.png')
+    plt.savefig(f'{filename}_3d.png')
     plt.close()

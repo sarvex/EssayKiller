@@ -142,19 +142,19 @@ class MultiHeadedAttention(nn.Module):
         def shape(x):
             """  projection """
             return x.view(batch_size, -1, head_count, dim_per_head) \
-                .transpose(1, 2)
+                    .transpose(1, 2)
 
         def unshape(x):
             """  compute context """
             return x.transpose(1, 2).contiguous() \
-                .view(batch_size, -1, head_count * dim_per_head)
+                    .view(batch_size, -1, head_count * dim_per_head)
 
         # 1) Project key, value, and query.
         if layer_cache is not None:
             if type == "self":
                 query, key, value = self.linear_query(query), \
-                                    self.linear_keys(query), \
-                                    self.linear_values(query)
+                                        self.linear_keys(query), \
+                                        self.linear_values(query)
 
                 key = shape(key)
                 value = shape(value)
@@ -176,17 +176,17 @@ class MultiHeadedAttention(nn.Module):
                 if layer_cache is not None:
                     if layer_cache["memory_keys"] is None:
                         key, value = self.linear_keys(key), \
-                                     self.linear_values(value)
+                                         self.linear_values(value)
                         key = shape(key)
                         value = shape(value)
                     else:
                         key, value = layer_cache["memory_keys"], \
-                                     layer_cache["memory_values"]
+                                         layer_cache["memory_values"]
                     layer_cache["memory_keys"] = key
                     layer_cache["memory_values"] = value
                 else:
                     key, value = self.linear_keys(key), \
-                                 self.linear_values(value)
+                                     self.linear_values(value)
                     key = shape(key)
                     value = shape(value)
         else:
@@ -213,7 +213,7 @@ class MultiHeadedAttention(nn.Module):
 
         attn = self.softmax(scores)
 
-        if (not predefined_graph_1 is None):
+        if predefined_graph_1 is not None:
             attn_masked = attn[:, -1] * predefined_graph_1
             attn_masked = attn_masked / (torch.sum(attn_masked, 2).unsqueeze(2) + 1e-9)
 

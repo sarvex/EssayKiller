@@ -8,6 +8,7 @@ NOTE: You will want to do this using several processes. I did this on an AWS mac
 as that's where I had the deduplicated RealNews dataset.
 """
 
+
 #python prepare_data.py -input_fn /data/home/share1/gpt2-ml-Finetune/data
 
 import argparse
@@ -36,20 +37,16 @@ if __name__ == '__main__':
 
     image = tf.cast(features['input_ids'], tf.int64)
 
- 
+
     with tf.Session() as sess:
-      init_op = tf.global_variables_initializer()
-      sess.run(init_op)
-      coord = tf.train.Coordinator()
-      threads = tf.train.start_queue_runners(coord=coord)
-      for i in range(1):
-        example = sess.run([image])
-        count = 1
-        for i in example[0]:
-            if i == 0:continue
-            count += 1
-            #print(i)
-        print("total lens: ", count)
-        print("unique lens: ", len(set(example[0])))
-      coord.request_stop()
-      coord.join(threads)
+        init_op = tf.global_variables_initializer()
+        sess.run(init_op)
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(coord=coord)
+        for i in range(1):
+            example = sess.run([image])
+            count = 1 + sum(1 for i in example[0] if i != 0)
+            print("total lens: ", count)
+            print("unique lens: ", len(set(example[0])))
+        coord.request_stop()
+        coord.join(threads)

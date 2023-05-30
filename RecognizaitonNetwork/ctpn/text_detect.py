@@ -34,7 +34,7 @@ def load_tf_model():
     saver = tf.train.Saver()
     try:
         ckpt = tf.train.get_checkpoint_state(cfg.TEST.checkpoints_path)
-        print('Restoring from {}...'.format(ckpt.model_checkpoint_path))
+        print(f'Restoring from {ckpt.model_checkpoint_path}...')
         saver.restore(sess, ckpt.model_checkpoint_path)
         print('done')
     except:
@@ -68,11 +68,7 @@ def draw_boxes(img, boxes, scale):
         if np.linalg.norm(box[0] - box[1]) < 5 or np.linalg.norm(box[3] - box[0]) < 5:
             continue
 
-        if box[8] >= 0.8:
-            color = (255, 0, 0)  # red
-        else:
-            color = (0, 255, 0)  # green
-
+        color = (255, 0, 0) if box[8] >= 0.8 else (0, 255, 0)
         cv2.line(img, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), color, 2)
         cv2.line(img, (int(box[0]), int(box[1])), (int(box[4]), int(box[5])), color, 2)
         cv2.line(img, (int(box[6]), int(box[7])), (int(box[2]), int(box[3])), color, 2)

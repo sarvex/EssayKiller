@@ -124,12 +124,12 @@ def article_iterator(tokenizer,filename):
     """ Iterate through the provided filename + tokenize"""
     assert os.path.exists(args.input_fn)
     count = 0
-    print("dirpath, " + os.path.join(filename))
+    print(f"dirpath, {os.path.join(filename)}")
     with open(os.path.join(filename), 'rb') as f:
         for l_no, l in enumerate(f):
             if l_no % args.num_folds == args.fold:
-                print("type: ", str(type(l)))
-                print("l: " + str(len(l)) + " l_no: " , (str(l_no)))
+                print("type: ", type(l))
+                print(f"l: {len(l)} l_no: ", l_no)
                 l = str(l, encoding = "gbk",errors='ignore')
                 article = json.loads(l)
                 line = tokenization.convert_to_unicode(
@@ -158,16 +158,14 @@ def article_iterator(tokenizer,filename):
 
 
 def create_int_feature(values):
-    feature = tf.train.Feature(
-        int64_list=tf.train.Int64List(value=list(values)))
-    return feature
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=list(values)))
 
 
 def buffered_and_sliding_window_article_iterator(tokenizer, filename, final_desired_size=1025):
     """ We apply a sliding window to fix long sequences, and use a buffer that combines short sequences."""
     for article in article_iterator(tokenizer,filename):
         if len(article['input_ids']) >= final_desired_size:
-            article['input_ids'] = article['input_ids'][0:final_desired_size-1]
+            article['input_ids'] = article['input_ids'][:final_desired_size-1]
         print("article>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 0", len(article['input_ids']))
         print("article>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 1", final_desired_size)
         while len(article['input_ids']) < final_desired_size:
@@ -180,10 +178,10 @@ def buffered_and_sliding_window_article_iterator(tokenizer, filename, final_desi
 file_num = args.fold
 for (dirpath, dirnames, filenames) in os.walk(args.input_fn):
     for filename in filenames:
-        total_written = 0
         train_file = args.base_fn + '_{:04d}.tfrecord'.format(file_num)
         filename = os.path.join(dirpath, filename)
         print("begin again...", filename)
+        total_written = 0
         with S3TFRecordWriter(train_file) as train_writer:
             # for article in buffered_and_sliding_window_article_iterator(tokenizer,
             #                                                             final_desired_size=1024):
@@ -204,12 +202,10 @@ for (dirpath, dirnames, filenames) in os.walk(args.input_fn):
             file_num += 1
             # DEBUG
             if article['inst_index'] < 5:
-                print("~~~\nIndex {}. ARTICLE: {}\n---\nTokens: {}\n\n".format(article['inst_index'],
-                                                                                tokenizer.convert_ids_to_tokens(
-                                                                                    article['input_ids']),
-                                                                                article['input_ids']
-                                                                                ), flush=True)
+                print(
+                    f"~~~\nIndex {article['inst_index']}. ARTICLE: {tokenizer.convert_ids_to_tokens(article['input_ids'])}\n---\nTokens: {article['input_ids']}\n\n",
+                    flush=True,
+                )
             if article['inst_index'] % 1000 == 0:
-                print("{} articles, {} written".format(
-                    article['inst_index'], total_written), flush=True)
+                print(f"{article['inst_index']} articles, {total_written} written", flush=True)
 print("DONE UPLOADING", flush=True)

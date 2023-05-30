@@ -105,7 +105,7 @@ def main(_):
 
     tf.logging.info("*** Input Files ***")
     for input_file in input_files:
-        tf.logging.info("  %s" % input_file)
+        tf.logging.info(f"  {input_file}")
 
     tpu_cluster_resolver = None
     if FLAGS.use_tpu and FLAGS.tpu_name:

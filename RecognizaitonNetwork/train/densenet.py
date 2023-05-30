@@ -18,7 +18,7 @@ def conv_block(input, growth_rate, dropout_rate=None, weight_decay=1e-4):
     return x
 
 def dense_block(x, nb_layers, nb_filter, growth_rate, droput_rate=0.2, weight_decay=1e-4):
-    for i in range(nb_layers):
+    for _ in range(nb_layers):
         cb = conv_block(x, growth_rate, droput_rate, weight_decay)
         x = concatenate([x, cb], axis=-1)
         nb_filter += growth_rate
@@ -44,14 +44,14 @@ def transition_block(input, nb_filter, dropout_rate=None, pooltype=1, weight_dec
 
 def dense_cnn(input, nclass):
 
-    _dropout_rate = 0.2 
+    _dropout_rate = 0.2
     _weight_decay = 1e-4
 
     _nb_filter = 64
     # conv 64 5*5 s=2
     x = Conv2D(_nb_filter, (5, 5), strides=(2, 2), kernel_initializer='he_normal', padding='same',
                use_bias=False, kernel_regularizer=l2(_weight_decay))(input)
-   
+
     # 64 + 8 * 8 = 128
     x, _nb_filter = dense_block(x, 8, _nb_filter, 8, None, _weight_decay)
     # 128
@@ -70,12 +70,7 @@ def dense_cnn(input, nclass):
 
     x = Permute((2, 1, 3), name='permute')(x)
     x = TimeDistributed(Flatten(), name='flatten')(x)
-    y_pred = Dense(nclass, name='out', activation='softmax')(x)
-
-    # basemodel = Model(inputs=input, outputs=y_pred)
-    # basemodel.summary()
-
-    return y_pred
+    return Dense(nclass, name='out', activation='softmax')(x)
 
 def dense_blstm(input):
 

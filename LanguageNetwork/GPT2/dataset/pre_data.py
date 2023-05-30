@@ -6,6 +6,12 @@ import argparse
 import os
 def get_data(filepath,outfile):
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>1", filepath)
+    strid = 768
+    max_length = 1024
+    pattern1 =  r"^[^。！？]*"
+    pattern2 = r'.*[。！？]'
+    pattern3 = r'高考满分作文|满分作文|刘慈欣|钱钟书|老舍|路遥|贾平凹|季羡林|史铁生|周国平|余华|南怀瑾|鲁迅|林清玄|木心|痞子蔡| \
+            梁实秋|郁达夫|毛泽东|杨绛|朱自清|巴金|序言|前言|后记|后编|作者|译者|章节|[^\u4e00-\u9fa5。！？，\\p{Zs}——]*'
     for root, dirs, files in os.walk(filepath):
         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>2", root,dirs,files)
         for each in files:
@@ -14,15 +20,9 @@ def get_data(filepath,outfile):
             f = open(filename, 'r',encoding='utf-8')
             data = f.read()
             print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>4", data)
-            strid = 768
-            max_length = 1024
             data_list = []
             strat = 0
             end = 1024
-            pattern1 =  r"^[^。！？]*"
-            pattern2 = r'.*[。！？]'
-            pattern3 = r'高考满分作文|满分作文|刘慈欣|钱钟书|老舍|路遥|贾平凹|季羡林|史铁生|周国平|余华|南怀瑾|鲁迅|林清玄|木心|痞子蔡| \
-            梁实秋|郁达夫|毛泽东|杨绛|朱自清|巴金|序言|前言|后记|后编|作者|译者|章节|[^\u4e00-\u9fa5。！？，\\p{Zs}——]*'
             f_json = open(outfile,'a',encoding='utf-8')
             while strat<= len(data) :
                 data_list.append((strat,end))
@@ -32,7 +32,6 @@ def get_data(filepath,outfile):
                 end = min(strat+max_length,len(data))
             print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>5", data_list)
             for each in data_list:
-                tmp ={}
                 text = data[each[0]:each[1]]
                 text1 = re.sub(pattern1,'',text)
                 text2 = re.sub(pattern3,'',text1)
@@ -43,8 +42,8 @@ def get_data(filepath,outfile):
                 #print(re.findall(pattern2,text3))
                 text4_list = re.findall(pattern2,text3)
                 text4 = '\n'.join(text4_list)
-                tmp['text'] = text4
-                if(text4 == ''): continue
+                tmp = {'text': text4}
+                if not text4: continue
                 print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>7", tmp)
                 json_data = json.dumps(tmp,ensure_ascii=False)
                 f_json.write(json_data)

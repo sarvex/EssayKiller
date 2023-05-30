@@ -39,11 +39,11 @@ def convert_openai_checkpoint_to_pytorch(openai_checkpoint_folder_path, openai_c
     load_tf_weights_in_openai_gpt(model, openai_checkpoint_folder_path)
 
     # Save pytorch-models
-    pytorch_weights_dump_path = pytorch_dump_folder_path + '/' + WEIGHTS_NAME
-    pytorch_config_dump_path = pytorch_dump_folder_path + '/' + CONFIG_NAME
-    print("Save PyTorch models to {}".format(pytorch_weights_dump_path))
+    pytorch_weights_dump_path = f'{pytorch_dump_folder_path}/{WEIGHTS_NAME}'
+    pytorch_config_dump_path = f'{pytorch_dump_folder_path}/{CONFIG_NAME}'
+    print(f"Save PyTorch models to {pytorch_weights_dump_path}")
     torch.save(model.state_dict(), pytorch_weights_dump_path)
-    print("Save configuration file to {}".format(pytorch_config_dump_path))
+    print(f"Save configuration file to {pytorch_config_dump_path}")
     with open(pytorch_config_dump_path, "w", encoding="utf-8") as f:
         f.write(config.to_json_string())
 

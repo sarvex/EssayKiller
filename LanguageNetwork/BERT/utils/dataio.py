@@ -25,16 +25,12 @@ def load_txt_data(path, mode='utf-8-sig', origin=False):
         raise TypeError
     res = []
 
-    file = open(path, 'rb')
-    lines = file.read().decode(mode, 'ignore')
-    for line in lines.split('\n'):
-        line = line.strip()
-        if origin:
-            res.append(line)
-        else:
-            if line:
+    with open(path, 'rb') as file:
+        lines = file.read().decode(mode, 'ignore')
+        for line in lines.split('\n'):
+            line = line.strip()
+            if not origin and line or origin:
                 res.append(line)
-    file.close()
     return res
 
 
@@ -161,5 +157,3 @@ def delete_file(path):
     os.remove(path)
 
 
-if __name__ == '__main__':
-    pass

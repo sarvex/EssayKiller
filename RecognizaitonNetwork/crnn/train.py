@@ -56,7 +56,7 @@ def main():
 
     # get device
     if torch.cuda.is_available():
-        device = torch.device("cuda:{}".format(config.GPUID))
+        device = torch.device(f"cuda:{config.GPUID}")
     else:
         device = torch.device("cpu:0")
 

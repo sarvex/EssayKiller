@@ -72,9 +72,7 @@ class CRNN(nn.Module):
         assert h == 1, "the height of conv must be 1"
         conv = conv.squeeze(2) # b *512 * width
         conv = conv.permute(2, 0, 1)  # [w, b, c]
-        output = F.log_softmax(self.rnn(conv), dim=2)
-
-        return output
+        return F.log_softmax(self.rnn(conv), dim=2)
 
 def weights_init(m):
     classname = m.__class__.__name__

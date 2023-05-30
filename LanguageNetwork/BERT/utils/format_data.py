@@ -19,8 +19,7 @@ def merge_files(path_list, merge_path):
 
 def split_doc(data_path, out_path):
     data = load_txt_data(data_path)
-    doc_index = 0
-    for i in tqdm(range(len(data)), desc='split_doc'):
+    for doc_index, i in enumerate(tqdm(range(len(data)), desc='split_doc')):
         line = data[i].split(',')
         abstract = " ".join(line[0])
         from pyparsing import oneOf
@@ -32,9 +31,8 @@ def split_doc(data_path, out_path):
         new_doc = document + ['@highlight\n'] + [abstract]
         _doc_index = str(doc_index)
         while len(_doc_index) <= 8:
-            _doc_index = '0' + _doc_index
+            _doc_index = f'0{_doc_index}'
         save_txt_file(new_doc, out_path + _doc_index + '.story')
-        doc_index += 1
 
 
 def split_doc2(data_path, out_path):
@@ -50,9 +48,7 @@ def split_doc2(data_path, out_path):
             abstract = ' '.join(abstract)
             tmp = re.sub("[\" ]", "", line[0])
             tmp = tmp.split('。')
-            document = []
-            for x in tmp:
-                document.append(' '.join(x))
+            document = [' '.join(x) for x in tmp]
         except IndexError:
             continue
 
@@ -81,7 +77,7 @@ def revers_index(path):
             abst = raw[1]
         except IndexError:
             continue
-        res.append('{},{}'.format(abst, doc))
+        res.append(f'{abst},{doc}')
     save_txt_file(res, path)
 
 
@@ -93,7 +89,7 @@ def filter_data(path):
         doc = raw[1]
         abst = raw[0]
         if len(doc) >= 100:
-            res.append('{},{}'.format(abst, doc))
+            res.append(f'{abst},{doc}')
     save_txt_file(res, path)
 
 

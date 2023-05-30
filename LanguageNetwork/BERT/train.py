@@ -127,7 +127,7 @@ class Running(object):
 
         self.device = "cpu" if self.args.visible_gpus == '-1' else "cuda"
         logger.info('Device ID %d' % self.device_id)
-        logger.info('Device %s' % self.device)
+        logger.info(f'Device {self.device}')
         torch.manual_seed(self.args.seed)
         random.seed(self.args.seed)
 
@@ -155,10 +155,10 @@ class Running(object):
         model = model_builder.Summarizer(self.args, self.device, load_pretrained_bert=True)
 
         if self.args.train_from:
-            logger.info('Loading checkpoint from %s' % self.args.train_from)
+            logger.info(f'Loading checkpoint from {self.args.train_from}')
             checkpoint = torch.load(self.args.train_from, map_location=lambda storage, loc: storage)
             opt = vars(checkpoint['opt'])
-            for k in opt.keys():
+            for k in opt:
                 if k in self.model_flags:
                     setattr(self.args, k, opt[k])
             model.load_cp(checkpoint)
@@ -172,11 +172,11 @@ class Running(object):
 
     def validate(self, step):
 
-        logger.info('Loading checkpoint from %s' % self.args.validate_from)
+        logger.info(f'Loading checkpoint from {self.args.validate_from}')
         checkpoint = torch.load(self.args.validate_from, map_location=lambda storage, loc: storage)
 
         opt = vars(checkpoint['opt'])
-        for k in opt.keys():
+        for k in opt:
             if k in self.model_flags:
                 setattr(self.args, k, opt[k])
         print(self.args)
@@ -206,7 +206,7 @@ class Running(object):
                 if i - max_step > 10:
                     break
             xent_lst = sorted(xent_lst, key=lambda x: x[0])[:3]
-            logger.info('PPL %s' % str(xent_lst))
+            logger.info(f'PPL {str(xent_lst)}')
             for xent, cp in xent_lst:
                 step = int(cp.split('.')[-2].split('_')[-1])
                 self.test(step)
@@ -217,7 +217,7 @@ class Running(object):
                 if cp_files:
                     cp = cp_files[-1]
                     time_of_cp = os.path.getmtime(cp)
-                    if not os.path.getsize(cp) > 0:
+                    if os.path.getsize(cp) <= 0:
                         time.sleep(60)
                         continue
                     if time_of_cp > time_step:
@@ -243,10 +243,10 @@ class Running(object):
             except IndexError:
                 step = 0
 
-        logger.info('Loading checkpoint from %s' % self.args.test_from)
+        logger.info(f'Loading checkpoint from {self.args.test_from}')
         checkpoint = torch.load(self.args.test_from, map_location=lambda storage, loc: storage)
         opt = vars(checkpoint['opt'])
-        for k in opt.keys():
+        for k in opt:
             if k in self.model_flags:
                 setattr(self.args, k, opt[k])
 
@@ -267,10 +267,10 @@ class Running(object):
             except IndexError:
                 step = 0
 
-        logger.info('Loading checkpoint from %s' % self.args.test_from)
+        logger.info(f'Loading checkpoint from {self.args.test_from}')
         checkpoint = torch.load(self.args.test_from, map_location=lambda storage, loc: storage)
         opt = vars(checkpoint['opt'])
-        for k in opt.keys():
+        for k in opt:
             if k in self.model_flags:
                 setattr(self.args, k, opt[k])
 

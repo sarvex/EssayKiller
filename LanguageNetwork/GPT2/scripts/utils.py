@@ -81,11 +81,7 @@ def get_shape_list(tensor, expected_rank=None, name=None):
 
     shape = tensor.shape.as_list()
 
-    non_static_indexes = []
-    for (index, dim) in enumerate(shape):
-        if dim is None:
-            non_static_indexes.append(index)
-
+    non_static_indexes = [index for index, dim in enumerate(shape) if dim is None]
     if not non_static_indexes:
         return shape
 
@@ -138,8 +134,7 @@ def dropout(input_tensor, dropout_prob):
     """
     if dropout_prob is None or dropout_prob == 0.0:
         return input_tensor
-    output = tf.nn.dropout(input_tensor, rate=dropout_prob)
-    return output
+    return tf.nn.dropout(input_tensor, rate=dropout_prob)
 
 
 def get_attention_mask(nd, ns, *, dtype):
@@ -163,7 +158,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
         name = var.name
         m = re.match("^(.*):\\d+$", name)
         if m is not None:
-            name = m.group(1)
+            name = m[1]
         name_to_variable[name] = var
 
     init_vars = tf.train.list_variables(init_checkpoint)
@@ -175,7 +170,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
             continue
         assignment_map[name] = name
         initialized_variable_names[name] = 1
-        initialized_variable_names[name + ":0"] = 1
+        initialized_variable_names[f"{name}:0"] = 1
     return (assignment_map, initialized_variable_names)
 
 

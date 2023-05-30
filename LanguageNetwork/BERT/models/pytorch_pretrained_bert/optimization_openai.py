@@ -33,23 +33,22 @@ class OpenAIAdam(Optimizer):
                  b1=0.9, b2=0.999, e=1e-8, weight_decay=0,
                  vector_l2=False, max_grad_norm=-1, **kwargs):
         if lr is not required and lr < 0.0:
-            raise ValueError("Invalid learning rate: {} - should be >= 0.0".format(lr))
+            raise ValueError(f"Invalid learning rate: {lr} - should be >= 0.0")
         if not isinstance(schedule, _LRSchedule) and schedule not in SCHEDULES:
-            raise ValueError("Invalid schedule parameter: {}".format(schedule))
+            raise ValueError(f"Invalid schedule parameter: {schedule}")
         if not 0.0 <= b1 < 1.0:
-            raise ValueError("Invalid b1 parameter: {} - should be in [0.0, 1.0[".format(b1))
+            raise ValueError(f"Invalid b1 parameter: {b1} - should be in [0.0, 1.0[")
         if not 0.0 <= b2 < 1.0:
-            raise ValueError("Invalid b2 parameter: {} - should be in [0.0, 1.0[".format(b2))
-        if not e >= 0.0:
-            raise ValueError("Invalid epsilon value: {} - should be >= 0.0".format(e))
+            raise ValueError(f"Invalid b2 parameter: {b2} - should be in [0.0, 1.0[")
+        if e < 0.0:
+            raise ValueError(f"Invalid epsilon value: {e} - should be >= 0.0")
         # initialize schedule object
         if not isinstance(schedule, _LRSchedule):
             schedule_type = SCHEDULES[schedule]
             schedule = schedule_type(warmup=warmup, t_total=t_total)
-        else:
-            if warmup != -1 or t_total != -1:
-                logger.warning("warmup and t_total on the optimizer are ineffective when _LRSchedule object is provided as schedule. "
-                               "Please specify custom warmup and t_total in _LRSchedule object.")
+        elif warmup != -1 or t_total != -1:
+            logger.warning("warmup and t_total on the optimizer are ineffective when _LRSchedule object is provided as schedule. "
+                           "Please specify custom warmup and t_total in _LRSchedule object.")
         defaults = dict(lr=lr, schedule=schedule,
                         b1=b1, b2=b2, e=e, weight_decay=weight_decay, vector_l2=vector_l2,
                         max_grad_norm=max_grad_norm)
@@ -74,10 +73,7 @@ class OpenAIAdam(Optimizer):
             closure (callable, optional): A closure that reevaluates the models
                 and returns the loss.
         """
-        loss = None
-        if closure is not None:
-            loss = closure()
-
+        loss = closure() if closure is not None else None
         for group in self.param_groups:
             for p in group['params']:
                 if p.grad is None:

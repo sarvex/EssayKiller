@@ -14,8 +14,7 @@ from utils.utils import test_rouge, rouge_results_to_str
 
 
 def _tally_parameters(model):
-    n_params = sum([p.nelement() for p in model.parameters()])
-    return n_params
+    return sum(p.nelement() for p in model.parameters())
 
 
 def build_trainer(args, device_id, model, optim):
@@ -479,7 +478,7 @@ class Trainer(object):
             'optim': self.optimizer,
         }
         checkpoint_path = os.path.join(self.args.model_path, 'model_step_%d.pt' % step)
-        logger.info("Saving checkpoint %s" % checkpoint_path)
+        logger.info(f"Saving checkpoint {checkpoint_path}")
         # checkpoint_path = '%s_step_%d.pt' % (FLAGS.model_path, step)
         if not os.path.exists(checkpoint_path):
             torch.save(checkpoint, checkpoint_path)

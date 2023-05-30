@@ -30,11 +30,7 @@ def Levenshtein_Distance(str1, str2):
 
     for i in range(1, len(str1) + 1):
         for j in range(1, len(str2) + 1):
-            if (str1[i - 1] == str2[j - 1]):
-                d = 0
-            else:
-                d = 1
-
+            d = 0 if (str1[i - 1] == str2[j - 1]) else 1
             matrix[i][j] = min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + d)
 
     return matrix[len(str1)][len(str2)]
@@ -57,12 +53,8 @@ def question_review(ques, sensitive):
                 flag = True
             else:
                 count += 1
-    if flag and count != 0:
+    if flag and count != 0 or flag == False and count != 0:
         return random.choice(["我们还是聊点别的吧", "听不大懂耶", "我们聊点别的吧", "听不大懂哎"])
-    elif (flag == False) and count != 0:
-        return random.choice(["我们还是聊点别的吧", "听不大懂耶", "我们聊点别的吧", "听不大懂哎"])
-    elif flag and count == 0:
-        return "approved"
     else:
         return "approved"
 

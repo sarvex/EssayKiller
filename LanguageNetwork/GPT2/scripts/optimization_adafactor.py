@@ -158,17 +158,19 @@ class AdaFactorOptimizer(tf.compat.v1.train.Optimizer):
                 num_rows, num_columns = shape_list
 
                 vr = tf.get_variable(
-                    name=param_name + "/adafactor_vr",
+                    name=f"{param_name}/adafactor_vr",
                     shape=[num_rows],
                     dtype=tf.float32,
                     trainable=False,
-                    initializer=tf.zeros_initializer())
+                    initializer=tf.zeros_initializer(),
+                )
                 vc = tf.get_variable(
-                    name=param_name + "/adafactor_vc",
+                    name=f"{param_name}/adafactor_vc",
                     shape=[num_columns],
                     dtype=tf.float32,
                     trainable=False,
-                    initializer=tf.zeros_initializer())
+                    initializer=tf.zeros_initializer(),
+                )
 
                 next_vr = decay_rate * vr + (1 - decay_rate) * tf.reduce_mean(grad_squared, 1)
                 next_vc = decay_rate * vc + (1 - decay_rate) * tf.reduce_mean(grad_squared, 0)
@@ -178,15 +180,20 @@ class AdaFactorOptimizer(tf.compat.v1.train.Optimizer):
                 c_factor = tf.rsqrt(next_vc + self.epsilon1)
                 update = grad * tf.expand_dims(r_factor, -1) * tf.expand_dims(c_factor, -2)
 
-                assignments.append(vr.assign(next_vr, use_locking=self.use_locking))
-                assignments.append(vc.assign(next_vc, use_locking=self.use_locking))
+                assignments.extend(
+                    (
+                        vr.assign(next_vr, use_locking=self.use_locking),
+                        vc.assign(next_vc, use_locking=self.use_locking),
+                    )
+                )
             else:
                 v = tf.get_variable(
-                    name=param_name + "/adafactor_v",
+                    name=f"{param_name}/adafactor_v",
                     shape=shape_list,
                     dtype=tf.float32,
                     trainable=False,
-                    initializer=tf.zeros_initializer())
+                    initializer=tf.zeros_initializer(),
+                )
                 next_v = decay_rate * v + (1 - decay_rate) * grad_squared
 
                 assignments.append(v.assign(next_v, use_locking=self.use_locking))
@@ -226,7 +233,7 @@ class AdaFactorOptimizer(tf.compat.v1.train.Optimizer):
         """Get the variable name from the tensor name."""
         m = re.match("^(.*):\\d+$", param_name)
         if m is not None:
-            param_name = m.group(1)
+            param_name = m[1]
         return param_name
 
 

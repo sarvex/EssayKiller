@@ -182,8 +182,6 @@ with tf.Session(config=tf_config, graph=tf.Graph()) as sess:
     # text +="\n"
     while text != "":
         start = time.time()
-        # for i in range(args.samples):
-            #print("Sample,", i + 1, " of ", args.samples)
         line = tokenization.convert_to_unicode(text)
         bert_tokens = tokenizer.tokenize(line)
         encoded = tokenizer.convert_tokens_to_ids(bert_tokens)
@@ -215,7 +213,7 @@ with tf.Session(config=tf_config, graph=tf.Graph()) as sess:
         print(len(final))
         # print("\n".join(l))
         end = time.time()
-        print("耗时：{}s".format(end - start))
+        print(f"耗时：{end - start}s")
         # print('Next try:⬇️')
         text = input("User:")
 

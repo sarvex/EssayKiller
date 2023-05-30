@@ -13,12 +13,9 @@ def _get_ngrams(n, text):
     Returns:
       A set of n-grams
     """
-    ngram_set = set()
     text_length = len(text)
     max_index_ngram_start = text_length - n
-    for i in range(max_index_ngram_start + 1):
-        ngram_set.add(tuple(text[i:i + n]))
-    return ngram_set
+    return {tuple(text[i:i + n]) for i in range(max_index_ngram_start + 1)}
 
 
 def _get_word_ngrams(n, sentences):
